@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchPunchState, punch } from './attendance';
+import { fetchPunchState, fetchSummary, punch } from './attendance';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -85,5 +85,47 @@ describe('attendance service', () => {
       status: 0,
       code: 'NETWORK_ERROR',
     });
+  });
+
+  it('reads the summary without query parameters so the server applies its default range', async () => {
+    const body = {
+      rows: [
+        {
+          date: '2026-10-01',
+          masuk: '2026-10-01T01:00:00.000Z',
+          pulang: '2026-10-01T10:00:00.000Z',
+        },
+      ],
+    };
+    fetchMock.mockResolvedValue(jsonResponse(body));
+
+    await expect(fetchSummary()).resolves.toEqual(body);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe('/api/attendance/summary');
+    expect(init.method ?? 'GET').toBe('GET');
+    expect(init.credentials).toBe('include');
+  });
+
+  it('passes an explicit From–To range as query parameters', async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ rows: [] }));
+
+    await fetchSummary({ from: '2026-10-01', to: '2026-10-07' });
+
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe('/api/attendance/summary?from=2026-10-01&to=2026-10-07');
+  });
+
+  it('surfaces a rejected range as a typed 400 error', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse(
+        { statusCode: 400, code: 'RANGE_INVALID', message: 'from after to' },
+        400,
+      ),
+    );
+
+    await expect(
+      fetchSummary({ from: '2026-10-08', to: '2026-10-01' }),
+    ).rejects.toMatchObject({ status: 400, code: 'RANGE_INVALID' });
   });
 });

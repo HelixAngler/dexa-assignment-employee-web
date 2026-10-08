@@ -76,6 +76,23 @@ export const id = {
   'punch.network.description': 'Tidak ada data yang hilang. Silakan coba lagi.',
   'punch.network.retry': 'Coba lagi',
 
+  // Summary (attendance history)
+  'summary.title': 'Summary Kehadiran',
+  'summary.filter.fromLabel': 'Dari tanggal',
+  'summary.filter.toLabel': 'Sampai tanggal',
+  'summary.filter.search': 'Cari',
+  'summary.filter.reset': 'Atur ulang',
+  'summary.filter.rangeInvalid': 'Tanggal "Dari" tidak boleh setelah tanggal "Sampai".',
+  'summary.table.date': 'Tanggal',
+  'summary.table.masuk': 'Masuk',
+  'summary.table.pulang': 'Pulang',
+  'summary.row.stillWorking': '(masih bekerja)',
+  'summary.row.systemClosed': 'ditutup sistem',
+  'summary.row.noData': 'tidak ada data',
+  'summary.empty.title': 'Tidak ada absensi pada rentang ini',
+  'summary.empty.description':
+    'Belum ada absensi tercatat untuk rentang tanggal yang dipilih. Silakan pilih rentang lain.',
+
   // Common actions
   'common.save': 'Simpan',
   'common.cancel': 'Batal',

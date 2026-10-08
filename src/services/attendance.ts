@@ -26,6 +26,51 @@ export interface PunchResult {
   at: string;
 }
 
+/** One day of the attendance summary as the endpoint returns it. */
+export interface SummaryRow {
+  /** Calendar day the session belongs to, `YYYY-MM-DD`, ordered ascending. */
+  date: string;
+  /** Clock-in instant, or `null` when the day carries no session. */
+  masuk: string | null;
+  /** Clock-out instant; `null` while the session is still open. */
+  pulang: string | null;
+  /** Present and `true` while the session has not been clocked out yet. */
+  open?: boolean;
+  /** Present and `true` when the job closed the session after the day ended. */
+  systemClosed?: boolean;
+}
+
+/** Server body of the summary endpoint. */
+export interface SummaryResponse {
+  rows: SummaryRow[];
+}
+
+/** Optional From–To bounds; an omitted bound keeps the server default. */
+export interface SummaryQuery {
+  from?: string;
+  to?: string;
+}
+
+/**
+ * Reads the signed-in employee's own summary. Called with no bounds the
+ * server falls back to its default range, so the very first load sends no
+ * query string at all; a chosen range is passed through as-is.
+ */
+export function fetchSummary(query: SummaryQuery = {}): Promise<SummaryResponse> {
+  const params = new URLSearchParams();
+  if (query.from !== undefined && query.from !== '') {
+    params.set('from', query.from);
+  }
+  if (query.to !== undefined && query.to !== '') {
+    params.set('to', query.to);
+  }
+  const search = params.toString();
+  return apiFetch<SummaryResponse>(
+    `${ATTENDANCE_BASE}/summary${search === '' ? '' : `?${search}`}`,
+  );
+}
+
+
 /** Reads today's punch state; rejects with a typed `ApiError` on failure. */
 export function fetchPunchState(): Promise<PunchState> {
   return apiFetch<PunchState>(`${ATTENDANCE_BASE}/punches/state`);

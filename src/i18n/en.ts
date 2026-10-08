@@ -77,6 +77,23 @@ export const en: Record<DictKey, string> = {
   'punch.network.description': 'No data was lost. Please try again.',
   'punch.network.retry': 'Try again',
 
+  // Summary (attendance history)
+  'summary.title': 'Attendance Summary',
+  'summary.filter.fromLabel': 'From date',
+  'summary.filter.toLabel': 'To date',
+  'summary.filter.search': 'Search',
+  'summary.filter.reset': 'Reset',
+  'summary.filter.rangeInvalid': 'The From date must not be after the To date.',
+  'summary.table.date': 'Date',
+  'summary.table.masuk': 'Clock in',
+  'summary.table.pulang': 'Clock out',
+  'summary.row.stillWorking': '(still working)',
+  'summary.row.systemClosed': 'closed by system',
+  'summary.row.noData': 'no data',
+  'summary.empty.title': 'No attendance in this range',
+  'summary.empty.description':
+    'No attendance was recorded for the selected date range. Please pick another range.',
+
   // Common actions
   'common.save': 'Save',
   'common.cancel': 'Cancel',
