@@ -77,6 +77,58 @@ export const en: Record<DictKey, string> = {
   'punch.network.description': 'No data was lost. Please try again.',
   'punch.network.retry': 'Try again',
 
+  // Common actions
+  'common.save': 'Save',
+  'common.cancel': 'Cancel',
+
+  // Profile (self-service)
+  'profile.title': 'My Profile',
+  'profile.nameLabel': 'Name',
+  'profile.emailLabel': 'Company email',
+  'profile.positionLabel': 'Position',
+  'profile.phoneLabel': 'Phone',
+  'profile.passwordLabel': 'Password',
+  'profile.password.masked': '••••••••',
+  'profile.photo.alt': 'Profile photo',
+  'profile.photo.edit': 'Change profile photo',
+  'profile.phone.edit': 'Change phone number',
+  'profile.password.edit': 'Change password',
+  'profile.flash.phone': 'Phone number updated.',
+  'profile.flash.photo': 'Profile photo updated.',
+  'profile.flash.password': 'Password updated.',
+
+  // Profile → phone change screen
+  'profile.phone.title': 'Change Phone Number',
+  'profile.phone.hint': 'At least 8 digits; digits, + and - only.',
+  'profile.phone.required': 'A phone number is required.',
+  'profile.phone.invalidChars': 'Phone numbers may only contain digits, + and -.',
+  'profile.phone.tooShort': 'Phone numbers need at least 8 digits.',
+  'profile.phone.serverInvalid': 'The phone number is not valid.',
+
+  // Profile → photo change screen
+  'profile.photo.title': 'Change Profile Photo',
+  'profile.photo.hint': 'JPG or PNG, up to 2 MB.',
+  'profile.photo.choose': 'Choose a photo',
+  'profile.photo.uploading': 'Uploading photo…',
+  'profile.photo.error.type': 'The photo must be a JPG or PNG.',
+  'profile.photo.error.size': 'The photo may be at most 2 MB.',
+
+  // Profile → password change screen
+  'profile.password.title': 'Change Password',
+  'profile.password.currentLabel': 'Current password',
+  'profile.password.newLabel': 'New password',
+  'profile.password.confirmLabel': 'Repeat new password',
+  'profile.password.hint.min': 'At least 8 characters.',
+  'profile.password.hint.printable': 'Any printable characters are allowed.',
+  'profile.password.hint.avoidCommon': 'Avoid commonly used passwords.',
+  'profile.password.note':
+    'This session stays signed in on this device; other devices are signed out automatically.',
+  'profile.password.mismatch': 'The new passwords do not match.',
+  'profile.password.error.currentRequired': 'Enter your current password.',
+  'profile.password.error.tooShort': 'The new password needs at least 8 characters.',
+  'profile.password.error.weak': 'The password does not meet the security requirements.',
+  'profile.password.error.currentWrong': 'The current password is incorrect.',
+
   // Route fallback
   'route.notFound.title': 'Page not found',
   'route.notFound.description':

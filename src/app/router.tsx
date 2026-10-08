@@ -14,6 +14,9 @@ import AbsenPage from '../pages/AbsenPage';
 import FirstLoginPage from '../pages/FirstLoginPage';
 import LoginPage from '../pages/LoginPage';
 import ProfilPage from '../pages/ProfilPage';
+import ChangePasswordPage from '../pages/profile/ChangePasswordPage';
+import ChangePhonePage from '../pages/profile/ChangePhonePage';
+import ChangePhotoPage from '../pages/profile/ChangePhotoPage';
 import SummaryPage from '../pages/SummaryPage';
 import { useSession } from '../services/session';
 
@@ -35,6 +38,9 @@ export const standaloneRoutes: AppRoute[] = [
 /** Routes rendered inside the AppShell layout (nav bar + <Outlet/>). */
 export const shellRoutes: AppRoute[] = [
   { path: '/profil', element: <ProfilPage /> },
+  { path: '/profil/telepon', element: <ChangePhonePage /> },
+  { path: '/profil/foto', element: <ChangePhotoPage /> },
+  { path: '/profil/kata-sandi', element: <ChangePasswordPage /> },
   { path: '/absen', element: <AbsenPage /> },
   { path: '/summary', element: <SummaryPage /> },
 ];

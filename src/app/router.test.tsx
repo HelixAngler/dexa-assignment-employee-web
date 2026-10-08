@@ -110,6 +110,38 @@ describe('router guards', () => {
     expect(screen.getByTestId('summary')).toBeInTheDocument();
   });
 
+  it('keeps the three profile change screens reachable for employees', () => {
+    const { unmount } = renderAt('/profil/telepon', authedSession());
+    expect(screen.getByTestId('change-phone')).toBeInTheDocument();
+    expect(screen.getByTestId('nav-desktop')).toBeInTheDocument();
+    unmount();
+
+    renderAt('/profil/foto', authedSession());
+    expect(screen.getByTestId('change-photo')).toBeInTheDocument();
+    unmount();
+
+    renderAt('/profil/kata-sandi', authedSession());
+    expect(screen.getByTestId('change-password')).toBeInTheDocument();
+  });
+
+  it('denies an HRD session on the profile change screens', () => {
+    renderAt('/profil/foto', authedSession({
+      session: { role: 'hrd', mustChangePassword: false },
+    }));
+
+    expect(screen.getByTestId('access-denied-state')).toBeInTheDocument();
+    expect(screen.queryByTestId('change-photo')).not.toBeInTheDocument();
+  });
+
+  it('forces the first-password screen over the profile change screens', () => {
+    renderAt('/profil/kata-sandi', authedSession({
+      session: { role: 'employee', mustChangePassword: true },
+    }));
+
+    expect(screen.getByTestId('first-login')).toBeInTheDocument();
+    expect(screen.queryByTestId('change-password')).not.toBeInTheDocument();
+  });
+
   it('forces the first-password screen for every route while the change is due', () => {
     const { unmount } = renderAt('/absen', authedSession({
       session: { role: 'employee', mustChangePassword: true },

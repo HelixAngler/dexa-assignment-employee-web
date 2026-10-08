@@ -76,6 +76,58 @@ export const id = {
   'punch.network.description': 'Tidak ada data yang hilang. Silakan coba lagi.',
   'punch.network.retry': 'Coba lagi',
 
+  // Common actions
+  'common.save': 'Simpan',
+  'common.cancel': 'Batal',
+
+  // Profile (self-service)
+  'profile.title': 'Profil Saya',
+  'profile.nameLabel': 'Nama',
+  'profile.emailLabel': 'Email kantor',
+  'profile.positionLabel': 'Posisi',
+  'profile.phoneLabel': 'Telepon',
+  'profile.passwordLabel': 'Kata sandi',
+  'profile.password.masked': '••••••••',
+  'profile.photo.alt': 'Foto profil',
+  'profile.photo.edit': 'Ubah foto profil',
+  'profile.phone.edit': 'Ubah nomor telepon',
+  'profile.password.edit': 'Ubah kata sandi',
+  'profile.flash.phone': 'Nomor telepon berhasil diperbarui.',
+  'profile.flash.photo': 'Foto profil berhasil diperbarui.',
+  'profile.flash.password': 'Kata sandi berhasil diperbarui.',
+
+  // Profile → phone change screen
+  'profile.phone.title': 'Ubah Nomor Telepon',
+  'profile.phone.hint': 'Minimal 8 digit; hanya boleh berisi angka, +, dan -.',
+  'profile.phone.required': 'Nomor telepon wajib diisi.',
+  'profile.phone.invalidChars': 'Nomor telepon hanya boleh berisi angka, +, dan -.',
+  'profile.phone.tooShort': 'Nomor telepon minimal 8 digit.',
+  'profile.phone.serverInvalid': 'Nomor telepon tidak valid.',
+
+  // Profile → photo change screen
+  'profile.photo.title': 'Ubah Foto Profil',
+  'profile.photo.hint': 'Format JPG atau PNG, ukuran maksimal 2 MB.',
+  'profile.photo.choose': 'Pilih foto',
+  'profile.photo.uploading': 'Mengunggah foto…',
+  'profile.photo.error.type': 'Foto harus berformat JPG atau PNG.',
+  'profile.photo.error.size': 'Ukuran foto maksimal 2 MB.',
+
+  // Profile → password change screen
+  'profile.password.title': 'Ubah Kata Sandi',
+  'profile.password.currentLabel': 'Kata sandi saat ini',
+  'profile.password.newLabel': 'Kata sandi baru',
+  'profile.password.confirmLabel': 'Ulangi kata sandi baru',
+  'profile.password.hint.min': 'Minimal 8 karakter.',
+  'profile.password.hint.printable': 'Semua karakter yang dapat dicetak diperbolehkan.',
+  'profile.password.hint.avoidCommon': 'Hindari kata sandi yang sering dipakai.',
+  'profile.password.note':
+    'Sesi Anda di perangkat ini tetap aktif; perangkat lain akan keluar otomatis.',
+  'profile.password.mismatch': 'Kata sandi baru tidak sama.',
+  'profile.password.error.currentRequired': 'Masukkan kata sandi saat ini.',
+  'profile.password.error.tooShort': 'Kata sandi baru minimal 8 karakter.',
+  'profile.password.error.weak': 'Kata sandi tidak memenuhi persyaratan keamanan.',
+  'profile.password.error.currentWrong': 'Kata sandi saat ini salah.',
+
   // Route fallback
   'route.notFound.title': 'Halaman tidak ditemukan',
   'route.notFound.description':
