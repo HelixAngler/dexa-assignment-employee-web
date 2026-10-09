@@ -258,7 +258,10 @@ export default function AbsenPage() {
 
           {punchError && (
             <div className="mt-4">
-              <ServerErrorState onRetry={handleRetry} />
+              <ServerErrorState
+                onRetry={handleRetry}
+                actionVariant="secondary"
+              />
             </div>
           )}
 

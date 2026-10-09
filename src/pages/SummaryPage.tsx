@@ -190,6 +190,7 @@ export default function SummaryPage() {
         onRetry={() => {
           void load(attempted);
         }}
+        actionVariant="secondary"
       />
     );
   } else {

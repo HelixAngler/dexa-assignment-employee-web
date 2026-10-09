@@ -89,7 +89,7 @@ export default function FirstLoginPage() {
   return (
     <section
       data-testid="first-login"
-      className="flex min-h-screen flex-col bg-[var(--color-page)] text-base leading-6 text-[var(--color-text)]"
+      className="flex min-h-[100dvh] flex-col bg-[var(--color-page)] text-base leading-6 text-[var(--color-text)]"
     >
       <div className="flex items-center justify-end px-4 py-3 md:px-6">
         <LanguageToggle />
@@ -167,7 +167,11 @@ export default function FirstLoginPage() {
             </div>
 
             {error !== null && error.fault && (
-              <ServerErrorState title={error.text} onRetry={() => void submit()} />
+              <ServerErrorState
+                title={error.text}
+                onRetry={() => void submit()}
+                actionVariant="secondary"
+              />
             )}
 
             <button

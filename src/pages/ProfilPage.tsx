@@ -38,11 +38,12 @@ const cardClass =
   'rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]';
 
 /**
- * Standalone edit affordance for one profile field: its own link with a
- * 44×44 pixel target, labelled for screen readers and carrying a pencil mark.
- * The photo card pairs the mark with its visible label; row affordances stay
- * icon-only.
- */
+  * Standalone edit affordance for one profile field: its own outlined link
+  * with a 44×44 pixel target, labelled for screen readers and carrying a
+  * pencil mark. The photo card pairs the mark with its visible label; row
+  * affordances stay icon-only and wear the action tint, so the three edits
+  * carry the screen instead of a filled button.
+  */
 function EditLink({
   to,
   name,
@@ -57,8 +58,10 @@ function EditLink({
       to={to}
       aria-label={name}
       className={[
-        'flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-2 rounded-[var(--radius-sm)] text-sm font-semibold text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
-        withLabel ? 'px-3' : 'w-11',
+        'flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] text-sm font-semibold transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-subtle)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+        withLabel
+          ? 'px-3 text-[var(--color-text)]'
+          : 'w-11 text-[var(--color-primary)]',
       ].join(' ')}
     >
       <EditIcon size={20} />

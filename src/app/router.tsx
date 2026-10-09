@@ -51,7 +51,7 @@ export const defaultPath = '/absen';
 /** Centres full-viewport states on the page background, without app chrome. */
 function FullPage({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="relative flex min-h-[100dvh] items-center justify-center bg-[var(--color-page)] px-4">
       <div className="absolute right-4 top-4">
         <LanguageToggle />
       </div>
@@ -71,7 +71,7 @@ function NotFoundPage() {
         action={
           <Link
             to={defaultPath}
-            className="inline-flex min-h-[44px] items-center rounded-md bg-gray-800 px-4 text-sm font-medium text-white hover:bg-gray-900"
+            className="inline-flex min-h-[44px] items-center rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold text-[var(--color-on-primary)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
           >
             {t('route.notFound.back')}
           </Link>

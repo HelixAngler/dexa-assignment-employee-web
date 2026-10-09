@@ -230,7 +230,11 @@ export default function ChangePhonePage() {
 
           {faultTitle !== null && (
             <div className="mt-4">
-              <ServerErrorState title={faultTitle} onRetry={() => void submit()} />
+              <ServerErrorState
+                title={faultTitle}
+                onRetry={() => void submit()}
+                actionVariant="secondary"
+              />
             </div>
           )}
         </div>

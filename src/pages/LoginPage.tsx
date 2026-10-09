@@ -103,7 +103,7 @@ export default function LoginPage() {
   return (
     <section
       data-testid="login"
-      className="flex min-h-screen flex-col bg-[var(--color-page)] text-base leading-6 text-[var(--color-text)]"
+      className="flex min-h-[100dvh] flex-col bg-[var(--color-page)] text-base leading-6 text-[var(--color-text)]"
     >
       <div className="flex items-center justify-end px-4 py-3 md:px-6">
         <LanguageToggle />
@@ -216,7 +216,11 @@ export default function LoginPage() {
             </div>
 
             {error !== null && isServerFault(error.kind) && errorText !== null && (
-              <ServerErrorState title={errorText} onRetry={() => void attempt()} />
+              <ServerErrorState
+                title={errorText}
+                onRetry={() => void attempt()}
+                actionVariant="secondary"
+              />
             )}
 
             {!locked && (

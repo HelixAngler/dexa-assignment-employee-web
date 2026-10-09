@@ -31,7 +31,7 @@ export default function AppShell() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-[var(--color-page)] text-[var(--color-text)]">
+    <div className="min-h-[100dvh] bg-[var(--color-page)] text-[var(--color-text)]">
       <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <nav
           data-testid="nav-desktop"
