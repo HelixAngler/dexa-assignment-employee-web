@@ -137,6 +137,46 @@ describe('auth service', () => {
       });
     });
 
+    it('bootstraps an unknown tab from the profile alone when nothing is remembered', async () => {
+      // A fresh tab shares the session cookie but not the flags the sign-in
+      // form wrote: the profile payload is the only thing it can ask, and an
+      // HRD session in it must still be recognised here.
+      expect(window.sessionStorage.getItem('session-meta')).toBeNull();
+      fetchMock.mockResolvedValue(
+        jsonResponse({
+          name: 'Admin',
+          email: 'admin@corp.test',
+          position: 'HRD',
+          phone: '0812000000',
+          photoUrl: null,
+          role: 'hrd',
+        }),
+      );
+
+      await expect(fetchSession()).resolves.toMatchObject({ role: 'hrd' });
+      expect(window.sessionStorage.getItem('session-meta')).toBeNull();
+    });
+
+    it('prefers the role the profile reports over flags this tab remembered', async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse({ role: 'hrd', mustChangePassword: false }),
+      );
+      await login('admin@corp.test', 'secret-1');
+
+      fetchMock.mockResolvedValue(
+        jsonResponse({
+          name: 'Admin',
+          email: 'admin@corp.test',
+          position: 'HRD',
+          phone: '0812000000',
+          photoUrl: null,
+          role: 'employee',
+        }),
+      );
+
+      await expect(fetchSession()).resolves.toMatchObject({ role: 'employee' });
+    });
+
     it('rethrows a network failure instead of pretending the user is signed out', async () => {
       fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
 

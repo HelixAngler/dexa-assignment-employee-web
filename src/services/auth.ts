@@ -37,7 +37,15 @@ export interface LoginResult {
   mustChangePassword: boolean;
 }
 
-/** Role flags kept across page loads so a cookie-only reload still knows them. */
+/**
+ * Role flags remembered by this tab's sign-in form. They are no longer what
+ * bootstraps the app: the profile probe answers with the session's own role,
+ * so a tab that only shares the session cookie still knows whether it holds
+ * an employee session or the HRD session this app turns away. The stored
+ * copy survives as a legacy path for a profile payload that does not carry
+ * the flags yet, and for the forced-change flag, which only sign-in and the
+ * password screens set.
+ */
 interface SessionMeta {
   role: Role;
   mustChangePassword: boolean;
@@ -122,9 +130,11 @@ export async function logout(): Promise<void> {
 /**
  * Bootstraps the session by probing the profile endpoint: a 401 means nobody
  * is signed in (`null`), any other failure rejects so callers do not mistake
- * a network problem for an expired session. Role flags come from the payload
- * when present, otherwise from the flags remembered at sign-in, otherwise
- * from the employee defaults this app is built for.
+ * a network problem for an expired session. The probe payload decides the
+ * role whenever it carries one — that is the path every session takes, with
+ * or without anything this tab previously remembered — which is how an HRD
+ * session reaching this app is recognised and turned away from a cookie
+ * alone. The stored flags are consulted only when the payload omits them.
  */
 export async function fetchSession(): Promise<Session | null> {
   let profile: ProfileProbe;
