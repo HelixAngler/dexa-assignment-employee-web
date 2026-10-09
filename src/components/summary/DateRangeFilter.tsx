@@ -138,12 +138,12 @@ export default function DateRangeFilter({
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
         <button
           type="submit"
           data-testid="summary-search"
           disabled={invalid}
-          className="min-h-[44px] flex-1 rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:flex-1"
         >
           {t('summary.filter.search')}
         </button>
@@ -152,7 +152,7 @@ export default function DateRangeFilter({
             type="button"
             data-testid="summary-reset"
             onClick={handleReset}
-            className="min-h-[44px] flex-1 rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-1"
           >
             {t('summary.filter.reset')}
           </button>

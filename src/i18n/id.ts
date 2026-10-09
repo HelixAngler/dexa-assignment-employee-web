@@ -25,6 +25,7 @@ export const id = {
   'state.accessDenied.description':
     'Anda tidak memiliki izin untuk melihat halaman ini.',
   'state.accessDenied.back': 'Kembali',
+  'state.accessDenied.signOut': 'Keluar',
   'state.empty.title': 'Belum ada data',
   'state.empty.description': 'Belum ada yang bisa ditampilkan di sini.',
   'state.success.default': 'Perubahan berhasil disimpan.',
@@ -65,6 +66,8 @@ export const id = {
   'absen.direction.pulang': 'pulang',
   'absen.punch.masuk': 'ABSEN MASUK',
   'absen.punch.pulang': 'ABSEN PULANG',
+  'absen.flash.masuk': 'Absen masuk tercatat.',
+  'absen.flash.pulang': 'Absen pulang tercatat.',
 
   // Punch feedback overlays
   'punch.conflict.alreadyIn': 'Anda sudah absen masuk.',

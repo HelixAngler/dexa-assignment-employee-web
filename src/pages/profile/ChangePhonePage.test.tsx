@@ -241,9 +241,36 @@ describe('ChangePhonePage', () => {
     );
   });
 
-  it('reports the connection copy when the save cannot reach the server', async () => {
+  it('stacks cancel and save full width on a phone and pairs them wider up', async () => {
+    mockProfile();
+    renderPhone();
+    await loadedPhoneField();
+
+    const save = screen.getByTestId('phone-save');
+    const cancel = screen.getByTestId('phone-cancel');
+    const row = save.parentElement;
+
+    expect(row?.className).toContain('flex-col');
+    expect(row?.className).toContain('sm:flex-row');
+    expect(save.className).toContain('w-full');
+    expect(save.className).toContain('sm:flex-1');
+    expect(cancel.className).toContain('w-full');
+    expect(save.className).toContain('min-h-[44px]');
+  });
+
+  it('hands a transport failure to the shared server-error state and retries the same save', async () => {
     const user = userEvent.setup();
-    mockProfile(() => Promise.reject(new TypeError('Failed to fetch')));
+    let patch = 0;
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') {
+        patch += 1;
+        if (patch === 1) {
+          return Promise.reject(new TypeError('Failed to fetch'));
+        }
+        return Promise.resolve(jsonResponse({}));
+      }
+      return Promise.resolve(jsonResponse(sampleProfile));
+    });
 
     renderPhone();
     const input = await loadedPhoneField();
@@ -252,10 +279,21 @@ describe('ChangePhonePage', () => {
     await user.type(input, '081234567890');
     await user.click(screen.getByRole('button', { name: id['common.save'] }));
 
-    expect(await screen.findByTestId('phone-error')).toHaveTextContent(
-      id['auth.error.network'],
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.network']);
+    expect(state).toHaveTextContent(id['state.serverError.description']);
+    expect(screen.queryByTestId('phone-error')).not.toBeInTheDocument();
+    expect(screen.getByTestId('location-path')).toHaveTextContent(
+      '/profil/telepon',
     );
-    expect(screen.getByTestId('location-path')).toHaveTextContent('/profil/telepon');
+
+    await user.click(screen.getByTestId('retry-button'));
+
+    await waitFor(() => expectPath('/profil'));
+    expect(patchCalls()).toHaveLength(2);
+    expect(screen.getByTestId('location-state')).toHaveTextContent(
+      '"flash":"phone"',
+    );
   });
 
   it('cancels back to Profil without touching the server', async () => {

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ServerErrorState } from '../../components/states';
 import type { DictKey } from '../../i18n/id';
 import { useI18n } from '../../i18n/provider';
 import { ApiError } from '../../services/api';
@@ -8,27 +9,43 @@ import { changePassword } from '../../services/profile';
 /** Shortest replacement password the strength rule accepts. */
 const MIN_PASSWORD_LENGTH = 8;
 
+/** How a failed change is reported back to the form. */
+interface ChangeError {
+  /** Copy for the failure. */
+  text: string;
+  /** True when only the shared server-error state should show it. */
+  fault: boolean;
+}
+
 /**
- * Turns a failed change into inline copy: an unreachable server gets the
- * connection copy, a rejected replacement shows the server's own explanation
- * (or the local rule text when it sent none), a wrong current password gets
- * the same treatment, and everything else falls back to a generic retry.
+ * Classifies a failed change: a rejected replacement and a wrong current
+ * password are shown next to the fields (the input has to change to pass),
+ * while an unreachable server and anything else is a fault the shared
+ * server-error state owns — nothing was written, so it can say so and offer
+ * a retry of the same values.
  */
-function describeError(error: unknown, t: (key: DictKey) => string): string {
+function describeError(error: unknown, t: (key: DictKey) => string): ChangeError {
   if (error instanceof ApiError) {
-    if (error.status === 0) {
-      return t('auth.error.network');
-    }
     if (error.code === 'PASSWORD_WEAK') {
-      return error.message !== '' ? error.message : t('profile.password.error.weak');
+      return {
+        text: error.message !== '' ? error.message : t('profile.password.error.weak'),
+        fault: false,
+      };
     }
     if (error.status === 401) {
-      return error.message !== ''
-        ? error.message
-        : t('profile.password.error.currentWrong');
+      return {
+        text:
+          error.message !== ''
+            ? error.message
+            : t('profile.password.error.currentWrong'),
+        fault: false,
+      };
+    }
+    if (error.status === 0) {
+      return { text: t('auth.error.network'), fault: true };
     }
   }
-  return t('auth.error.generic');
+  return { text: t('auth.error.generic'), fault: true };
 }
 
 const fieldClass =
@@ -38,8 +55,10 @@ const fieldClass =
  * Self-service password change: the current password proves ownership, the
  * replacement is checked against the length rule and matched against its
  * confirmation before anything is sent, and the server's strength verdict is
- * shown inline. The screen also states that the present session survives
- * while other devices are signed out, so the outcome is not a surprise.
+ * shown inline while an unreachable server hands off to the shared
+ * server-error state, which retries the same values. The screen also states
+ * that the present session survives while other devices are signed out, so
+ * the outcome is not a surprise.
  */
 export default function ChangePasswordPage() {
   const { t } = useI18n();
@@ -48,24 +67,29 @@ export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ChangeError | null>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const inlineError =
+    error !== null && !error.fault
+      ? error.text
+      : null;
+  const faultTitle = error !== null && error.fault ? error.text : null;
+
+  async function submit() {
     if (submitting) {
       return;
     }
     setError(null);
     if (currentPassword === '') {
-      setError(t('profile.password.error.currentRequired'));
+      setError({ text: t('profile.password.error.currentRequired'), fault: false });
       return;
     }
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      setError(t('profile.password.error.tooShort'));
+      setError({ text: t('profile.password.error.tooShort'), fault: false });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(t('profile.password.mismatch'));
+      setError({ text: t('profile.password.mismatch'), fault: false });
       return;
     }
     setSubmitting(true);
@@ -77,6 +101,11 @@ export default function ChangePasswordPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submit();
   }
 
   return (
@@ -170,23 +199,23 @@ export default function ChangePasswordPage() {
             {t('profile.password.note')}
           </p>
 
-          {error !== null && (
+          {inlineError !== null && (
             <p
               id="password-error"
               data-testid="password-error"
               role="alert"
               className="text-sm text-red-700"
             >
-              {error}
+              {inlineError}
             </p>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               data-testid="password-cancel"
               onClick={() => navigate('/profil')}
-              className="min-h-[44px] flex-1 rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-1"
             >
               {t('common.cancel')}
             </button>
@@ -195,12 +224,18 @@ export default function ChangePasswordPage() {
               data-testid="password-save"
               disabled={submitting}
               aria-busy={submitting}
-              className="min-h-[44px] flex-1 rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:flex-1"
             >
               {t('common.save')}
             </button>
           </div>
         </form>
+
+        {faultTitle !== null && (
+          <div className="mt-4">
+            <ServerErrorState title={faultTitle} onRetry={() => void submit()} />
+          </div>
+        )}
       </div>
     </section>
   );

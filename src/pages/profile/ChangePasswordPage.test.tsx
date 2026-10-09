@@ -126,6 +126,21 @@ describe('ChangePasswordPage', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('stacks cancel and save full width on a phone and pairs them wider up', () => {
+    renderPassword();
+
+    const save = screen.getByTestId('password-save');
+    const cancel = screen.getByTestId('password-cancel');
+    const row = save.parentElement;
+
+    expect(row?.className).toContain('flex-col');
+    expect(row?.className).toContain('sm:flex-row');
+    expect(save.className).toContain('w-full');
+    expect(save.className).toContain('sm:flex-1');
+    expect(cancel.className).toContain('w-full');
+    expect(save.className).toContain('min-h-[44px]');
+  });
+
   it('posts the change and returns to Profil with success feedback', async () => {
     const user = userEvent.setup();
     fetchMock.mockResolvedValue(jsonResponse({}));
@@ -183,16 +198,47 @@ describe('ChangePasswordPage', () => {
     expectPath('/profil/kata-sandi');
   });
 
-  it('reports the connection copy when the server is unreachable', async () => {
+  it('hands an unreachable server to the shared server-error state and retries the same change', async () => {
     const user = userEvent.setup();
-    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+    let post = 0;
+    fetchMock.mockImplementation(() => {
+      post += 1;
+      if (post === 1) {
+        return Promise.reject(new TypeError('Failed to fetch'));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
     renderPassword();
 
     await fillAndSubmit(user, 'old-secret-1', 'brand-new-pass', 'brand-new-pass');
 
-    expect(await screen.findByTestId('password-error')).toHaveTextContent(
-      id['auth.error.network'],
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.network']);
+    expect(state).toHaveTextContent(id['state.serverError.description']);
+    expect(screen.queryByTestId('password-error')).not.toBeInTheDocument();
+    expectPath('/profil/kata-sandi');
+
+    await user.click(screen.getByTestId('retry-button'));
+
+    await waitFor(() => expectPath('/profil'));
+    expect(screen.getByTestId('location-state')).toHaveTextContent(
+      '"flash":"password"',
     );
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('routes an unexpected server failure through the same shared state', async () => {
+    const user = userEvent.setup();
+    fetchMock.mockResolvedValue(
+      jsonResponse({ statusCode: 500, code: 'INTERNAL', message: 'boom' }, 500),
+    );
+    renderPassword();
+
+    await fillAndSubmit(user, 'old-secret-1', 'brand-new-pass', 'brand-new-pass');
+
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.generic']);
+    expect(screen.queryByTestId('password-error')).not.toBeInTheDocument();
     expectPath('/profil/kata-sandi');
   });
 });

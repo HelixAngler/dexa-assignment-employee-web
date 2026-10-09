@@ -149,6 +149,22 @@ describe('DateRangeFilter', () => {
     ).toBeEnabled();
   });
 
+  it('stacks search and reset full width on a phone and pairs them wider up', () => {
+    renderFilter({ initial: { from: '2026-10-01', to: '2026-10-05' } });
+
+    const search = screen.getByTestId('summary-search');
+    const reset = screen.getByTestId('summary-reset');
+    const row = search.parentElement;
+
+    expect(row?.className).toContain('flex-col');
+    expect(row?.className).toContain('sm:flex-row');
+    expect(search.className).toContain('min-h-[44px]');
+    expect(search.className).toContain('w-full');
+    expect(search.className).toContain('sm:flex-1');
+    expect(reset.className).toContain('w-full');
+    expect(reset.className).toContain('sm:flex-1');
+  });
+
   it('renders the English copy when English is the stored language', async () => {
     const user = userEvent.setup();
     window.localStorage.setItem('lang', 'en');

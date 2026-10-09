@@ -65,7 +65,7 @@ function ProfileRow({
     <div className="flex items-center justify-between gap-3 py-3">
       <div className="min-w-0">
         <p className="text-sm font-medium text-gray-700">{t(labelKey)}</p>
-        <p data-testid={valueTestId} className="truncate text-sm text-gray-900">
+        <p data-testid={valueTestId} className="break-all text-sm text-gray-900">
           {value}
         </p>
       </div>

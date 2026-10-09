@@ -126,18 +126,40 @@ describe('FirstLoginPage', () => {
     );
   });
 
-  it('shows the connection copy when the network fails', async () => {
+  it('hands a network failure to the shared server-error state with a working retry', async () => {
     const user = userEvent.setup();
-    setFirstPasswordMock.mockRejectedValue(
-      new ApiError(0, 'NETWORK_ERROR', 'The request could not reach the server.'),
-    );
+    setFirstPasswordMock
+      .mockRejectedValueOnce(
+        new ApiError(0, 'NETWORK_ERROR', 'The request could not reach the server.'),
+      )
+      .mockResolvedValue(undefined);
+    const refresh = vi.fn().mockResolvedValue(undefined);
+    renderFirstLogin(makeSession({ refresh }));
+
+    await fillPasswords(user, 'brand-new-pass', 'brand-new-pass');
+
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.network']);
+    expect(state).toHaveTextContent(id['state.serverError.description']);
+    expect(screen.queryByTestId('first-login-error')).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('retry-button'));
+
+    expect(await screen.findByText('absen-destination')).toBeInTheDocument();
+    expect(setFirstPasswordMock).toHaveBeenCalledTimes(2);
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes an unexpected server failure through the same shared state', async () => {
+    const user = userEvent.setup();
+    setFirstPasswordMock.mockRejectedValue(new ApiError(500, 'INTERNAL', 'boom'));
     renderFirstLogin(makeSession());
 
     await fillPasswords(user, 'brand-new-pass', 'brand-new-pass');
 
-    expect(await screen.findByTestId('first-login-error')).toHaveTextContent(
-      id['auth.error.network'],
-    );
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.generic']);
+    expect(screen.queryByTestId('first-login-error')).not.toBeInTheDocument();
   });
 
   it('renders the English copy when English is the stored language', () => {

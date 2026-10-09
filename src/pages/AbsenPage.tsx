@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { ConflictOverlay, NetworkErrorOverlay } from '../components/punch';
-import { LoadingState, ServerErrorState } from '../components/states';
+import { LoadingState, ServerErrorState, useSuccessToast } from '../components/states';
 import type { DictKey } from '../i18n/id';
 import { useI18n } from '../i18n/provider';
 import { ApiError } from '../services/api';
@@ -68,10 +68,12 @@ function formatLastPunch(
  * status, the last punch and the single primary action: clock in while no
  * session is open, clock out while one is. Each submission carries a fresh
  * idempotency key that survives failures, so retrying after a dropped
- * connection cannot record a second row.
+ * connection cannot record a second row, and a punch the server did record
+ * is announced with the success toast.
  */
 export default function AbsenPage() {
   const { t, lang } = useI18n();
+  const { toast, show } = useSuccessToast();
   const [state, setState] = useState<PunchState | null>(null);
   const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState<PunchAttempt | null>(null);
@@ -104,6 +106,13 @@ export default function AbsenPage() {
         await punch(pending.direction, pending.key);
         setAttempt(null);
         await load();
+        show(
+          t(
+            pending.direction === 'masuk'
+              ? 'absen.flash.masuk'
+              : 'absen.flash.pulang',
+          ),
+        );
       } catch (caught) {
         if (caught instanceof ApiError && caught.status === 409) {
           // The server wrote nothing; the key stays consumed for this body.
@@ -128,7 +137,7 @@ export default function AbsenPage() {
         setSubmitting(false);
       }
     },
-    [load, t],
+    [load, t, show],
   );
 
   function handlePunch() {
@@ -248,6 +257,7 @@ export default function AbsenPage() {
   return (
     <section data-testid="absen" className="space-y-4">
       {content}
+      {toast}
     </section>
   );
 }

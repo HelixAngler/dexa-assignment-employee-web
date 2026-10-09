@@ -31,21 +31,33 @@ export function validatePhone(value: string): DictKey | null {
   return null;
 }
 
+/** How a failed save is reported back to the form. */
+interface SaveError {
+  /** Copy for the failure. */
+  text: string;
+  /** True when only the shared server-error state should show it. */
+  fault: boolean;
+}
+
 /**
- * Turns a failed save into inline copy: the server's own rejection of the
- * number wins, unreachable servers get the connection copy, and everything
- * else falls back to a generic retry message.
+ * Classifies a failed save: the server's own rejection of the number is an
+ * inline message next to the field, while an unreachable server and anything
+ * else is a fault the shared server-error state owns — nothing was written,
+ * so it can say so and offer a retry of the same number.
  */
-function describeError(error: unknown, t: (key: DictKey) => string): string {
+function describeError(error: unknown, t: (key: DictKey) => string): SaveError {
   if (error instanceof ApiError) {
     if (error.status === 0) {
-      return t('auth.error.network');
+      return { text: t('auth.error.network'), fault: true };
     }
     if (error.code === 'PHONE_INVALID') {
-      return error.message !== '' ? error.message : t('profile.phone.serverInvalid');
+      return {
+        text: error.message !== '' ? error.message : t('profile.phone.serverInvalid'),
+        fault: false,
+      };
     }
   }
-  return t('auth.error.generic');
+  return { text: t('auth.error.generic'), fault: true };
 }
 
 const fieldClass =
@@ -65,7 +77,7 @@ export default function ChangePhonePage() {
   const [phone, setPhone] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<SaveError | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -84,20 +96,21 @@ export default function ChangePhonePage() {
   const validationKey = validatePhone(phone);
   const showFieldError =
     validationKey !== null && (phone.trim() !== '' || submitAttempted);
+  const rejectedValue = saveError !== null && !saveError.fault;
   const inlineError =
-    serverError !== null
-      ? serverError
+    rejectedValue && saveError !== null
+      ? saveError.text
       : showFieldError && validationKey !== null
         ? t(validationKey)
         : null;
+  const faultTitle = saveError !== null && saveError.fault ? saveError.text : null;
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function submit() {
     if (submitting || phase !== 'ready') {
       return;
     }
     setSubmitAttempted(true);
-    setServerError(null);
+    setSaveError(null);
     if (validatePhone(phone) !== null) {
       return;
     }
@@ -106,10 +119,15 @@ export default function ChangePhonePage() {
       await updatePhone(phone.trim());
       navigate('/profil', { state: { flash: 'phone' } });
     } catch (caught) {
-      setServerError(describeError(caught, t));
+      setSaveError(describeError(caught, t));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void submit();
   }
 
   let content: ReactNode;
@@ -152,7 +170,7 @@ export default function ChangePhonePage() {
               value={phone}
               onChange={(event) => {
                 setPhone(event.target.value);
-                setServerError(null);
+                setSaveError(null);
               }}
               className={fieldClass}
             />
@@ -168,12 +186,12 @@ export default function ChangePhonePage() {
             )}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="button"
               data-testid="phone-cancel"
               onClick={() => navigate('/profil')}
-              className="min-h-[44px] flex-1 rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-1"
             >
               {t('common.cancel')}
             </button>
@@ -182,12 +200,18 @@ export default function ChangePhonePage() {
               data-testid="phone-save"
               disabled={submitting}
               aria-busy={submitting}
-              className="min-h-[44px] flex-1 rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:flex-1"
             >
               {t('common.save')}
             </button>
           </div>
         </form>
+
+        {faultTitle !== null && (
+          <div className="mt-4">
+            <ServerErrorState title={faultTitle} onRetry={() => void submit()} />
+          </div>
+        )}
       </div>
     );
   }

@@ -201,18 +201,107 @@ describe('ChangePhotoPage', () => {
     expectPath('/profil/foto');
   });
 
-  it('reports the connection copy when the upload cannot reach the server', async () => {
+  it('wraps a long file name instead of letting it scroll the card sideways', async () => {
     const user = userEvent.setup();
-    mockHappyUpload(() => Promise.reject(new TypeError('Failed to fetch')));
+    fetchMock.mockReturnValue(new Promise(() => {}));
+    renderPhoto();
+
+    const longName =
+      'profile-photo-from-the-summer-team-offsite-without-any-breakpoints.jpg';
+    await user.upload(
+      screen.getByTestId('photo-input'),
+      new File(['photo-bytes'], longName, { type: 'image/jpeg' }),
+    );
+
+    const shown = await screen.findByTestId('photo-file');
+    expect(shown).toHaveTextContent(longName);
+    expect(shown.className).toContain('break-all');
+  });
+
+  it('reserves the layout with the uploading state while the file is in flight', async () => {
+    const user = userEvent.setup();
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    fetchMock.mockImplementation((url: string) => {
+      const target = String(url);
+      if (target.endsWith('/photo/upload-url')) {
+        return gate.then(() =>
+          jsonResponse({
+            presignedUrl: PRESIGNED_URL,
+            objectKey: 'photos/me.jpg',
+          }),
+        );
+      }
+      if (target.startsWith('https://storage.test/')) {
+        return Promise.resolve(new Response(null, { status: 200 }));
+      }
+      if (target.endsWith('/photo/commit')) {
+        return Promise.resolve(jsonResponse({}));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
     renderPhoto();
 
     const photo = new File(['photo-bytes'], 'me.jpg', { type: 'image/jpeg' });
     await user.upload(screen.getByTestId('photo-input'), photo);
 
-    expect(await screen.findByTestId('photo-error')).toHaveTextContent(
-      id['auth.error.network'],
-    );
+    const loading = await screen.findByTestId('loading-state');
+    expect(loading).toHaveAttribute('aria-label', id['profile.photo.uploading']);
+    expect(screen.getByTestId('photo-input')).toBeDisabled();
+    expect(screen.queryByTestId('photo-error')).not.toBeInTheDocument();
+
+    release?.();
+    await waitFor(() => expectPath('/profil'));
+  });
+
+  it('hands an unreachable server to the shared state and retries the same file', async () => {
+    const user = userEvent.setup();
+    let attempts = 0;
+    fetchMock.mockImplementation((url: string) => {
+      const target = String(url);
+      if (target.endsWith('/photo/upload-url')) {
+        attempts += 1;
+        if (attempts === 1) {
+          return Promise.reject(new TypeError('Failed to fetch'));
+        }
+        return Promise.resolve(
+          jsonResponse({
+            presignedUrl: PRESIGNED_URL,
+            objectKey: 'photos/me.jpg',
+          }),
+        );
+      }
+      if (target.startsWith('https://storage.test/')) {
+        return Promise.resolve(new Response(null, { status: 200 }));
+      }
+      if (target.endsWith('/photo/commit')) {
+        return Promise.resolve(jsonResponse({}));
+      }
+      return Promise.resolve(jsonResponse({}));
+    });
+    renderPhoto();
+
+    const photo = new File(['photo-bytes'], 'me.jpg', { type: 'image/jpeg' });
+    await user.upload(screen.getByTestId('photo-input'), photo);
+
+    const state = await screen.findByTestId('server-error-state');
+    expect(state).toHaveTextContent(id['auth.error.network']);
+    expect(state).toHaveTextContent(id['state.serverError.description']);
+    expect(screen.queryByTestId('photo-error')).not.toBeInTheDocument();
     expectPath('/profil/foto');
+
+    await user.click(screen.getByTestId('retry-button'));
+
+    await waitFor(() => expectPath('/profil'));
+    expect(screen.getByTestId('location-state')).toHaveTextContent('"flash":"photo"');
+    expect(requestUrls()).toEqual([
+      '/api/identity/profile/photo/upload-url',
+      '/api/identity/profile/photo/upload-url',
+      PRESIGNED_URL,
+      '/api/identity/profile/photo/commit',
+    ]);
   });
 
   it('cancels back to Profil without starting an upload', async () => {

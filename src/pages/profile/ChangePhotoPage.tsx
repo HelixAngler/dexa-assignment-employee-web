@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LoadingState, ServerErrorState } from '../../components/states';
 import type { DictKey } from '../../i18n/id';
 import { useI18n } from '../../i18n/provider';
 import { ApiError } from '../../services/api';
@@ -27,39 +28,61 @@ export function validatePhotoFile(file: { type: string; size: number }): DictKey
   return null;
 }
 
+/** How a failed upload is reported back to the form. */
+interface UploadError {
+  /** Copy for the failure. */
+  text: string;
+  /** True when only the shared server-error state should show it. */
+  fault: boolean;
+}
+
 /**
- * Turns a failed upload into inline copy: an unreachable server gets the
- * connection copy, a rejected file gets the server's own explanation (or the
- * local rule text when it sent none), everything else gets a generic retry.
+ * Classifies a failed upload: a file the server refuses is reported inline
+ * next to the picker (the file has to change to pass), while an unreachable
+ * server and anything else is a fault the shared server-error state owns —
+ * nothing was committed, so it can say so and offer a retry of the same file.
  */
-function describeError(error: unknown, t: (key: DictKey) => string): string {
+function describeError(error: unknown, t: (key: DictKey) => string): UploadError {
   if (error instanceof ApiError) {
-    if (error.status === 0) {
-      return t('auth.error.network');
-    }
     if (error.code === 'PHOTO_TYPE') {
-      return error.message !== '' ? error.message : t('profile.photo.error.type');
+      return {
+        text: error.message !== '' ? error.message : t('profile.photo.error.type'),
+        fault: false,
+      };
     }
     if (error.code === 'PHOTO_TOO_LARGE') {
-      return error.message !== '' ? error.message : t('profile.photo.error.size');
+      return {
+        text: error.message !== '' ? error.message : t('profile.photo.error.size'),
+        fault: false,
+      };
+    }
+    if (error.status === 0) {
+      return { text: t('auth.error.network'), fault: true };
     }
   }
-  return t('auth.error.generic');
+  return { text: t('auth.error.generic'), fault: true };
 }
 
 /**
  * Photo-change screen. The format and size limits are stated before the file
  * picker so the rule is known up front; a picked file is checked again
  * locally, then pushed straight to the storage server through a one-shot
- * upload URL and committed. Every failure is reported inline, and cancelling
- * leaves the previous photo untouched.
+ * upload URL and committed. While it is in flight the uploading state
+ * reserves the space the result will occupy, a refused file is reported next
+ * to the picker, and a server that never answered hands off to the shared
+ * server-error state, which re-sends the same file. Cancelling leaves the
+ * previous photo untouched.
  */
 export default function ChangePhotoPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [fileName, setFileName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<UploadError | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+
+  const inlineError = error !== null && !error.fault ? error.text : null;
+  const faultTitle = error !== null && error.fault ? error.text : null;
 
   async function runUpload(file: File) {
     setUploading(true);
@@ -87,10 +110,12 @@ export default function ChangePhotoPage() {
     const localError = validatePhotoFile(file);
     if (localError !== null) {
       setFileName(null);
-      setError(t(localError));
+      setPendingFile(null);
+      setError({ text: t(localError), fault: false });
       return;
     }
     setFileName(file.name);
+    setPendingFile(file);
     void runUpload(file);
   }
 
@@ -124,30 +149,42 @@ export default function ChangePhotoPage() {
             className="mt-1 block min-h-[44px] w-full text-sm text-gray-700 file:mr-3 file:min-h-[44px] file:rounded-md file:border file:border-gray-300 file:bg-white file:px-4 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-50"
           />
           {fileName !== null && (
-            <p data-testid="photo-file" className="mt-1 text-sm text-gray-600">
+            <p
+              data-testid="photo-file"
+              className="mt-1 break-all text-sm text-gray-600"
+            >
               {fileName}
             </p>
           )}
           {uploading && (
-            <p
-              data-testid="photo-uploading"
-              role="status"
-              className="mt-1 text-sm text-gray-600"
-            >
-              {t('profile.photo.uploading')}
-            </p>
+            <div className="mt-1">
+              <LoadingState label={t('profile.photo.uploading')} rows={1} />
+            </div>
           )}
-          {error !== null && (
+          {inlineError !== null && (
             <p
               id="photo-error"
               data-testid="photo-error"
               role="alert"
               className="mt-1 text-sm text-red-700"
             >
-              {error}
+              {inlineError}
             </p>
           )}
         </div>
+
+        {faultTitle !== null && (
+          <div className="mt-4">
+            <ServerErrorState
+              title={faultTitle}
+              onRetry={() => {
+                if (pendingFile !== null) {
+                  void runUpload(pendingFile);
+                }
+              }}
+            />
+          </div>
+        )}
 
         <div className="mt-4">
           <button

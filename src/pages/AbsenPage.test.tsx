@@ -139,6 +139,72 @@ describe('AbsenPage', () => {
     expect(stateCalls).toBe(2);
   });
 
+  it('confirms a recorded clock-in with the success toast', async () => {
+    const user = userEvent.setup();
+    let stateCalls = 0;
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse({
+            sessionId: 's-1',
+            direction: 'masuk',
+            at: '2026-10-07T01:00:00.000Z',
+          }),
+        );
+      }
+      stateCalls += 1;
+      return Promise.resolve(
+        jsonResponse(
+          stateCalls === 1
+            ? { status: 'belum_masuk' }
+            : { status: 'bekerja', clockInAt: '2026-10-07T01:00:00.000Z' },
+        ),
+      );
+    });
+
+    renderAbsen();
+    await screen.findByText(id['absen.status.belumMasuk']);
+
+    await user.click(screen.getByRole('button', { name: id['absen.punch.masuk'] }));
+
+    expect(await screen.findByTestId('success-toast')).toHaveTextContent(
+      id['absen.flash.masuk'],
+    );
+  });
+
+  it('confirms a recorded clock-out with the success toast', async () => {
+    const user = userEvent.setup();
+    let stateCalls = 0;
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => {
+      if (init?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse({
+            sessionId: 's-1',
+            direction: 'pulang',
+            at: '2026-10-07T09:00:00.000Z',
+          }),
+        );
+      }
+      stateCalls += 1;
+      return Promise.resolve(
+        jsonResponse(
+          stateCalls === 1
+            ? { status: 'bekerja', clockInAt: '2026-10-07T01:00:00.000Z' }
+            : { status: 'belum_masuk' },
+        ),
+      );
+    });
+
+    renderAbsen();
+    await screen.findByText(id['absen.status.bekerja']);
+
+    await user.click(screen.getByRole('button', { name: id['absen.punch.pulang'] }));
+
+    expect(await screen.findByTestId('success-toast')).toHaveTextContent(
+      id['absen.flash.pulang'],
+    );
+  });
+
   it('reuses the same idempotency key when a failed punch is retried', async () => {
     const user = userEvent.setup();
     let stateCalls = 0;

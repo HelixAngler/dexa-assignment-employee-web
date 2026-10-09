@@ -27,6 +27,7 @@ export const en: Record<DictKey, string> = {
   'state.accessDenied.description':
     'You do not have permission to view this page.',
   'state.accessDenied.back': 'Back',
+  'state.accessDenied.signOut': 'Sign out',
   'state.empty.title': 'No data yet',
   'state.empty.description': 'There is nothing to show here yet.',
   'state.success.default': 'Changes saved successfully.',
@@ -66,6 +67,8 @@ export const en: Record<DictKey, string> = {
   'absen.direction.pulang': 'out',
   'absen.punch.masuk': 'CLOCK IN',
   'absen.punch.pulang': 'CLOCK OUT',
+  'absen.flash.masuk': 'Clock-in recorded.',
+  'absen.flash.pulang': 'Clock-out recorded.',
 
   // Punch feedback overlays
   'punch.conflict.alreadyIn': 'You have already clocked in.',

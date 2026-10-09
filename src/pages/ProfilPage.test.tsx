@@ -73,6 +73,19 @@ describe('ProfilPage', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
+  it('keeps every value readable on a narrow screen instead of clipping it', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(sampleProfile));
+
+    renderProfil();
+    await screen.findByText(sampleProfile.name);
+
+    for (const testId of ['profil-name', 'profil-email', 'profil-position']) {
+      const value = screen.getByTestId(testId);
+      expect(value.className).toContain('break-all');
+      expect(value.className).not.toContain('truncate');
+    }
+  });
+
   it('renders the photo from the serve route', async () => {
     fetchMock.mockResolvedValue(jsonResponse(sampleProfile));
 

@@ -9,7 +9,7 @@ import {
 } from 'react-router-dom';
 import AppShell from '../components/AppShell';
 import { AccessDeniedState, EmptyState, LoadingState } from '../components/states';
-import { useI18n } from '../i18n/provider';
+import { LanguageToggle, useI18n } from '../i18n/provider';
 import AbsenPage from '../pages/AbsenPage';
 import FirstLoginPage from '../pages/FirstLoginPage';
 import LoginPage from '../pages/LoginPage';
@@ -51,7 +51,10 @@ export const defaultPath = '/absen';
 /** Centres full-viewport states on the page background, without app chrome. */
 function FullPage({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4">
+      <div className="absolute right-4 top-4">
+        <LanguageToggle />
+      </div>
       {children}
     </div>
   );
@@ -81,12 +84,15 @@ function NotFoundPage() {
 /**
  * The whole employee app is denied for an HRD session: this app only serves
  * employees, so an HRD cookie gets the access-denied state instead of any
- * screen.
+ * screen. The state offers both a way back and a sign-out, so nobody is
+ * stranded on a screen they cannot use.
  */
 function HrdDeniedPage() {
+  const { logout } = useSession();
+
   return (
     <FullPage>
-      <AccessDeniedState />
+      <AccessDeniedState onSignOut={() => void logout()} />
     </FullPage>
   );
 }

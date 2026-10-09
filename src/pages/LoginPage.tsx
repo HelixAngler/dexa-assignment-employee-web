@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useI18n } from '../i18n/provider';
+import { ServerErrorState } from '../components/states';
+import { LanguageToggle, useI18n } from '../i18n/provider';
 import { ApiError } from '../services/api';
 import { useSession } from '../services/session';
 
@@ -33,12 +34,19 @@ function toLoginErrorView(error: unknown): LoginErrorView {
   return { kind: 'generic' };
 }
 
+/** Transport faults that the shared server-error state should own. */
+function isServerFault(kind: LoginErrorKind): boolean {
+  return kind === 'network' || kind === 'generic';
+}
+
 /**
  * Sign-in screen. One generic failure message covers every rejected
  * credential, optionally extended with how many attempts the server still
- * allows; lockout and transport failures get their own copy. A successful
- * submit routes to the forced password screen when the account still uses a
- * temporary password, otherwise straight to Absen.
+ * allows; lockout keeps its own copy. A failure that is the server's or the
+ * connection's fault is handed to the shared server-error state, which says
+ * nothing changed and offers a retry that re-sends the same credentials. A
+ * successful submit routes to the forced password screen when the account
+ * still uses a temporary password, otherwise straight to Absen.
  */
 export default function LoginPage() {
   const { t } = useI18n();
@@ -60,8 +68,7 @@ export default function LoginPage() {
             ? t('auth.error.network')
             : t('auth.error.generic');
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function attempt() {
     if (submitting) {
       return;
     }
@@ -79,14 +86,22 @@ export default function LoginPage() {
     }
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void attempt();
+  }
+
   const fieldClass =
     'mt-1 h-11 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600';
 
   return (
     <section
       data-testid="login"
-      className="flex min-h-screen items-center justify-center bg-gray-50 px-4"
+      className="relative flex min-h-screen items-center justify-center bg-gray-50 px-4"
     >
+      <div className="absolute right-4 top-4">
+        <LanguageToggle />
+      </div>
       <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-semibold text-gray-900">
           {t('login.title')}
@@ -130,25 +145,31 @@ export default function LoginPage() {
           </div>
 
           {error !== null && errorText !== null && (
-            <div
-              role="alert"
-              data-testid="login-error"
-              className="space-y-1 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700"
-            >
-              <p>{errorText}</p>
-              {error.kind === 'invalid' &&
-                typeof error.attemptsRemaining === 'number' && (
-                  <p
-                    data-testid="login-attempts"
-                    className="font-medium text-red-800"
-                  >
-                    {t('login.error.attemptsRemaining').replace(
-                      '{count}',
-                      String(error.attemptsRemaining),
+            <>
+              {isServerFault(error.kind) ? (
+                <ServerErrorState title={errorText} onRetry={() => void attempt()} />
+              ) : (
+                <div
+                  role="alert"
+                  data-testid="login-error"
+                  className="space-y-1 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700"
+                >
+                  <p>{errorText}</p>
+                  {error.kind === 'invalid' &&
+                    typeof error.attemptsRemaining === 'number' && (
+                      <p
+                        data-testid="login-attempts"
+                        className="font-medium text-red-800"
+                      >
+                        {t('login.error.attemptsRemaining').replace(
+                          '{count}',
+                          String(error.attemptsRemaining),
+                        )}
+                      </p>
                     )}
-                  </p>
-                )}
-            </div>
+                </div>
+              )}
+            </>
           )}
 
           <button
