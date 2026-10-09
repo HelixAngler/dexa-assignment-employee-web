@@ -152,7 +152,7 @@ export default function ChangePhotoPage() {
               disabled={uploading}
               aria-describedby={inlineError === null ? undefined : 'photo-error'}
               onChange={handleFileChange}
-              className="mt-1 block min-h-[44px] w-full text-sm text-[var(--color-text-strong)] file:mr-3 file:min-h-[44px] file:rounded-[var(--radius-sm)] file:border file:border-[var(--color-border)] file:bg-[var(--color-surface)] file:px-4 file:text-sm file:font-semibold file:text-[var(--color-text)] hover:file:bg-[var(--color-page)]"
+              className="mt-1 block min-h-[44px] w-full text-sm text-[var(--color-text-strong)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] file:mr-3 file:min-h-[44px] file:rounded-[var(--radius-sm)] file:border file:border-[var(--color-border)] file:bg-[var(--color-surface)] file:px-4 file:text-sm file:font-semibold file:text-[var(--color-text)] hover:file:bg-[var(--color-page)]"
             />
             {fileName !== null && (
               <p
