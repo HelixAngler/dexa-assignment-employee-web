@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertIcon } from '../../components/icons';
 import { LoadingState, ServerErrorState } from '../../components/states';
 import type { DictKey } from '../../i18n/id';
 import { useI18n } from '../../i18n/provider';
@@ -60,8 +61,15 @@ function describeError(error: unknown, t: (key: DictKey) => string): SaveError {
   return { text: t('auth.error.generic'), fault: true };
 }
 
+/** Field box: 44 px floor, token colours, primary focus ring. */
 const fieldClass =
-  'mt-1 h-11 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600';
+  'mt-1 min-h-[44px] w-full rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base leading-6 text-[var(--color-text-strong)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed disabled:bg-[var(--color-page)] disabled:text-[var(--color-text-muted)]';
+
+/** Primary save and ghost cancel of the action row. */
+const saveClass =
+  'min-h-[44px] w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold leading-5 text-[var(--color-on-primary)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1';
+const cancelClass =
+  'min-h-[44px] w-full rounded-[var(--radius-md)] px-4 text-sm font-semibold leading-5 text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] sm:flex-1';
 
 /**
  * Phone-change screen. It prefills the number currently on the profile and
@@ -144,80 +152,94 @@ export default function ChangePhonePage() {
     );
   } else {
     content = (
-      <div className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-900">
+      <>
+        <h1 className="text-xl font-bold leading-8 text-[var(--color-text-strong)]">
           {t('profile.phone.title')}
         </h1>
-        <p className="mt-1 text-sm text-gray-500">{t('profile.phone.hint')}</p>
-
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div>
-            <label
-              htmlFor="change-phone-number"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {t('profile.phoneLabel')}
-            </label>
-            <input
-              id="change-phone-number"
-              name="phone"
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              aria-required="true"
-              aria-invalid={inlineError !== null}
-              aria-describedby={inlineError === null ? undefined : 'phone-error'}
-              value={phone}
-              onChange={(event) => {
-                setPhone(event.target.value);
-                setSaveError(null);
-              }}
-              className={fieldClass}
-            />
-            {inlineError !== null && (
-              <p
-                id="phone-error"
-                data-testid="phone-error"
-                role="alert"
-                className="mt-1 text-sm text-red-700"
+        <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="flex flex-col gap-1">
+              <label
+                htmlFor="change-phone-number"
+                className="text-sm font-medium leading-5 text-[var(--color-text)]"
               >
-                {inlineError}
+                {t('profile.phoneLabel')}
+              </label>
+              <input
+                id="change-phone-number"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                aria-required="true"
+                aria-invalid={inlineError !== null}
+                aria-describedby={
+                  inlineError === null ? 'phone-hint' : 'phone-hint phone-error'
+                }
+                value={phone}
+                onChange={(event) => {
+                  setPhone(event.target.value);
+                  setSaveError(null);
+                }}
+                className={fieldClass}
+              />
+              <p
+                id="phone-hint"
+                className="text-sm leading-5 text-[var(--color-text-muted)]"
+              >
+                {t('profile.phone.hint')}
               </p>
-            )}
-          </div>
+              {inlineError !== null && (
+                <div
+                  id="phone-error"
+                  data-testid="phone-error"
+                  role="alert"
+                  className="flex items-start gap-2 rounded-[var(--radius-sm)] bg-[var(--color-danger-bg)] px-3 py-2 text-sm leading-5"
+                >
+                  <AlertIcon
+                    size={20}
+                    className="mt-0.5 flex-none text-[var(--color-danger)]"
+                  />
+                  <p className="min-w-0 font-medium text-[var(--color-text-strong)]">
+                    {inlineError}
+                  </p>
+                </div>
+              )}
+            </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <button
-              type="button"
-              data-testid="phone-cancel"
-              onClick={() => navigate('/profil')}
-              className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-1"
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              data-testid="phone-save"
-              disabled={submitting}
-              aria-busy={submitting}
-              className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:flex-1"
-            >
-              {t('common.save')}
-            </button>
-          </div>
-        </form>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="submit"
+                data-testid="phone-save"
+                disabled={submitting}
+                aria-busy={submitting}
+                className={saveClass}
+              >
+                {t('common.save')}
+              </button>
+              <button
+                type="button"
+                data-testid="phone-cancel"
+                onClick={() => navigate('/profil')}
+                className={cancelClass}
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </form>
 
-        {faultTitle !== null && (
-          <div className="mt-4">
-            <ServerErrorState title={faultTitle} onRetry={() => void submit()} />
-          </div>
-        )}
-      </div>
+          {faultTitle !== null && (
+            <div className="mt-4">
+              <ServerErrorState title={faultTitle} onRetry={() => void submit()} />
+            </div>
+          )}
+        </div>
+      </>
     );
   }
 
   return (
-    <section data-testid="change-phone" className="flex justify-center">
+    <section data-testid="change-phone" className="space-y-6">
       {content}
     </section>
   );

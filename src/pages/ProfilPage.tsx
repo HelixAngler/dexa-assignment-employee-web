@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { EditIcon } from '../components/icons';
 import {
   LoadingState,
   ServerErrorState,
@@ -32,18 +33,36 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+/** Shared shape of the card surfaces on this screen. */
+const cardClass =
+  'rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]';
+
 /**
  * Standalone edit affordance for one profile field: its own link with a
  * 44×44 pixel target, labelled for screen readers and carrying a pencil mark.
+ * The photo card pairs the mark with its visible label; row affordances stay
+ * icon-only.
  */
-function EditLink({ to, name }: { to: string; name: string }) {
+function EditLink({
+  to,
+  name,
+  withLabel = false,
+}: {
+  to: string;
+  name: string;
+  withLabel?: boolean;
+}) {
   return (
     <Link
       to={to}
       aria-label={name}
-      className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md text-lg text-gray-500 hover:bg-gray-100 hover:text-blue-700"
+      className={[
+        'flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-2 rounded-[var(--radius-sm)] text-sm font-semibold text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+        withLabel ? 'px-3' : 'w-11',
+      ].join(' ')}
     >
-      <span aria-hidden="true">✎</span>
+      <EditIcon size={20} />
+      {withLabel && <span>{name}</span>}
     </Link>
   );
 }
@@ -62,10 +81,15 @@ function ProfileRow({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex items-center justify-between gap-3 py-3">
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-700">{t(labelKey)}</p>
-        <p data-testid={valueTestId} className="break-all text-sm text-gray-900">
+    <div className="flex min-h-[48px] items-center gap-3 border-b border-[var(--color-border)] px-4 py-3 last:border-b-0">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium leading-5 text-[var(--color-text-muted)]">
+          {t(labelKey)}
+        </p>
+        <p
+          data-testid={valueTestId}
+          className="break-all text-base leading-6 text-[var(--color-text-strong)]"
+        >
           {value}
         </p>
       </div>
@@ -132,14 +156,14 @@ export default function ProfilPage() {
           data-testid="profile-photo"
           src={photoUrl}
           alt={t('profile.photo.alt')}
-          className="h-20 w-20 shrink-0 rounded-full bg-gray-100 object-cover"
+          className="h-20 w-20 shrink-0 rounded-full bg-[var(--color-page)] object-cover"
         />
       ) : (
         <div
           data-testid="profile-photo-placeholder"
           role="img"
           aria-label={t('profile.photo.alt')}
-          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gray-200 text-lg font-semibold text-gray-500"
+          className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-subtle)] text-xl font-bold text-[var(--color-primary)]"
         >
           {initials(profile.name) !== '' ? (
             <span aria-hidden="true">{initials(profile.name)}</span>
@@ -157,14 +181,22 @@ export default function ProfilPage() {
 
     content = (
       <>
-        <h1 className="text-2xl font-semibold">{t('profile.title')}</h1>
+        <h1 className="text-xl font-bold leading-8 text-[var(--color-text-strong)]">
+          {t('profile.title')}
+        </h1>
 
-        <div className="mt-4 flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div
+          className={`${cardClass} flex items-center gap-4 p-4`}
+        >
           {avatar}
-          <EditLink to="/profil/foto" name={t('profile.photo.edit')} />
+          <EditLink
+            to="/profil/foto"
+            name={t('profile.photo.edit')}
+            withLabel
+          />
         </div>
 
-        <div className="mt-4 divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white px-4 shadow-sm">
+        <div className={`${cardClass} overflow-hidden`}>
           <ProfileRow
             labelKey="profile.nameLabel"
             valueTestId="profil-name"
@@ -205,7 +237,7 @@ export default function ProfilPage() {
   }
 
   return (
-    <section data-testid="profil" className="space-y-4">
+    <section data-testid="profil" className="space-y-6">
       {content}
       {toast}
     </section>

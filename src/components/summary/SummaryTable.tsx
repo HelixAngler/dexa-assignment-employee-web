@@ -53,11 +53,11 @@ function PulangCell({ row }: CellProps) {
   const open = row.pulang === null;
 
   return (
-    <span className="inline-flex flex-wrap items-baseline gap-x-2">
+    <span className="inline-flex flex-wrap items-center gap-2">
       {open ? (
         <span
           data-testid="summary-still-working"
-          className="text-gray-500 italic"
+          className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-page)] px-3 py-1 text-xs font-semibold leading-4 text-[var(--color-text)]"
         >
           {t('summary.row.stillWorking')}
         </span>
@@ -67,7 +67,7 @@ function PulangCell({ row }: CellProps) {
       {row.systemClosed === true && (
         <span
           data-testid="summary-system-closed"
-          className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+          className="inline-flex items-center rounded-full bg-[var(--color-attention-bg)] px-3 py-1 text-xs font-semibold leading-4 text-[var(--color-attention)]"
         >
           {t('summary.row.systemClosed')}
         </span>
@@ -89,39 +89,48 @@ function SummaryTableDesktop({ rows }: { rows: SummaryDisplayRow[] }) {
       className="hidden w-full border-collapse text-left text-sm tabular-nums md:table"
     >
       <thead>
-        <tr className="border-b border-gray-200 text-gray-600">
-          <th scope="col" className="py-2 pr-4 font-medium">
+        <tr className="border-b border-[var(--color-border)] text-[var(--color-text)]">
+          <th
+            scope="col"
+            className="sticky top-0 z-10 bg-[var(--color-surface)] px-3 py-3 font-semibold"
+          >
             {t('summary.table.date')}
           </th>
-          <th scope="col" className="py-2 pr-4 font-medium">
+          <th
+            scope="col"
+            className="sticky top-0 z-10 bg-[var(--color-surface)] px-3 py-3 font-semibold"
+          >
             {t('summary.table.masuk')}
           </th>
-          <th scope="col" className="py-2 font-medium">
+          <th
+            scope="col"
+            className="sticky top-0 z-10 bg-[var(--color-surface)] px-3 py-3 font-semibold"
+          >
             {t('summary.table.pulang')}
           </th>
         </tr>
       </thead>
-      <tbody className="divide-y divide-gray-100">
+      <tbody>
         {rows.map((row) => (
           <tr
             key={row.date}
             data-testid="summary-row"
             data-date={row.date}
-            className="text-gray-900"
+            className="border-b border-[var(--color-border)] text-[var(--color-text)] last:border-b-0 even:bg-[var(--color-page)]"
           >
-            <td className="py-2 pr-4">{row.date}</td>
+            <td className="h-12 px-3">{row.date}</td>
             {row.noData === true ? (
-              <td colSpan={2} className="py-2 text-gray-500">
+              <td colSpan={2} className="h-12 px-3 text-[var(--color-text-muted)]">
                 <span data-testid="summary-no-data">{t('summary.row.noData')}</span>
               </td>
             ) : (
               <>
-                <td className="py-2 pr-4">
+                <td className="h-12 px-3">
                   <span data-testid="summary-masuk">
                     {formatClock(row.masuk, lang)}
                   </span>
                 </td>
-                <td className="py-2">
+                <td className="h-12 px-3">
                   <PulangCell row={row} />
                 </td>
               </>
@@ -147,26 +156,32 @@ function SummaryTableCards({ rows }: { rows: SummaryDisplayRow[] }) {
           key={row.date}
           data-testid="summary-card"
           data-date={row.date}
-          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+          className="flex flex-col gap-1 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]"
         >
-          <p className="text-sm font-semibold text-gray-900">{row.date}</p>
+          <p className="m-0 text-base font-semibold leading-6 text-[var(--color-text-strong)] tabular-nums">
+            {row.date}
+          </p>
           {row.noData === true ? (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="m-0 text-sm leading-5 text-[var(--color-text-muted)]">
               <span data-testid="summary-no-data">{t('summary.row.noData')}</span>
             </p>
           ) : (
-            <dl className="mt-2 space-y-1 text-sm">
+            <dl className="mt-2 flex flex-col gap-1 text-sm leading-5">
               <div className="flex items-baseline justify-between gap-3">
-                <dt className="text-gray-500">{t('summary.table.masuk')}</dt>
-                <dd className="tabular-nums text-gray-900">
+                <dt className="text-[var(--color-text-muted)]">
+                  {t('summary.table.masuk')}
+                </dt>
+                <dd className="m-0 text-right tabular-nums text-[var(--color-text-strong)] [overflow-wrap:anywhere]">
                   <span data-testid="summary-masuk">
                     {formatClock(row.masuk, lang)}
                   </span>
                 </dd>
               </div>
               <div className="flex items-baseline justify-between gap-3">
-                <dt className="text-gray-500">{t('summary.table.pulang')}</dt>
-                <dd className="tabular-nums text-gray-900">
+                <dt className="text-[var(--color-text-muted)]">
+                  {t('summary.table.pulang')}
+                </dt>
+                <dd className="m-0 text-right tabular-nums text-[var(--color-text-strong)] [overflow-wrap:anywhere]">
                   <PulangCell row={row} />
                 </dd>
               </div>

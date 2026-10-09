@@ -1,4 +1,5 @@
 import { type FormEvent } from 'react';
+import { AlertIcon } from '../icons';
 import { useI18n } from '../../i18n/provider';
 
 /** A From–To range expressed as `YYYY-MM-DD` day strings. */
@@ -37,14 +38,16 @@ export function isRangeInvalid(from: string, to: string): boolean {
   return from > to;
 }
 
+/** Field box: 44 px floor, token colours, primary focus ring. */
 const fieldClass =
-  'mt-1 h-11 w-full rounded-md border border-gray-300 px-3 text-sm text-gray-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600';
+  'mt-1 min-h-[44px] w-full rounded-[var(--radius-sm)] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 text-base leading-6 text-[var(--color-text-strong)] focus:border-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed disabled:bg-[var(--color-page)] disabled:text-[var(--color-text-muted)]';
 
 /**
- * From–To picker above the summary list. The inputs are prefilled from the
- * range currently being shown, Cari hands the range back to the caller, and a
- * From date after the To date is reported inline and blocks the query so the
- * server never has to reject it.
+ * From–To picker above the summary list: one control column per bound plus
+ * the actions on the same wrapped row. The inputs are prefilled from the
+ * range currently being shown, Cari hands the range back to the caller, and
+ * a From date after the To date is reported inline and blocks the query so
+ * the server never has to reject it.
  */
 export default function DateRangeFilter({
   from,
@@ -86,64 +89,68 @@ export default function DateRangeFilter({
       data-testid="summary-filter"
       onSubmit={handleSubmit}
       noValidate
-      className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+      className="flex flex-wrap items-end gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]"
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="summary-range-from"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t('summary.filter.fromLabel')}
-          </label>
-          <input
-            id="summary-range-from"
-            data-testid="summary-from"
-            type="date"
-            value={from}
-            aria-invalid={invalid}
-            aria-describedby={message === null ? undefined : 'summary-range-error'}
-            onChange={(event) => handleChange('from', event.target.value)}
-            className={fieldClass}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="summary-range-to"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t('summary.filter.toLabel')}
-          </label>
-          <input
-            id="summary-range-to"
-            data-testid="summary-to"
-            type="date"
-            value={to}
-            aria-invalid={invalid}
-            aria-describedby={message === null ? undefined : 'summary-range-error'}
-            onChange={(event) => handleChange('to', event.target.value)}
-            className={fieldClass}
-          />
-        </div>
+      <div className="flex min-w-0 grow basis-[20ch] flex-col gap-1">
+        <label
+          htmlFor="summary-range-from"
+          className="text-sm font-medium leading-5 text-[var(--color-text)]"
+        >
+          {t('summary.filter.fromLabel')}
+        </label>
+        <input
+          id="summary-range-from"
+          data-testid="summary-from"
+          type="date"
+          value={from}
+          aria-invalid={invalid}
+          aria-describedby={message === null ? undefined : 'summary-range-error'}
+          onChange={(event) => handleChange('from', event.target.value)}
+          className={fieldClass}
+        />
+      </div>
+      <div className="flex min-w-0 grow basis-[20ch] flex-col gap-1">
+        <label
+          htmlFor="summary-range-to"
+          className="text-sm font-medium leading-5 text-[var(--color-text)]"
+        >
+          {t('summary.filter.toLabel')}
+        </label>
+        <input
+          id="summary-range-to"
+          data-testid="summary-to"
+          type="date"
+          value={to}
+          aria-invalid={invalid}
+          aria-describedby={message === null ? undefined : 'summary-range-error'}
+          onChange={(event) => handleChange('to', event.target.value)}
+          className={fieldClass}
+        />
       </div>
 
       {message !== null && (
-        <p
+        <div
           id="summary-range-error"
           data-testid="summary-range-error"
           role="alert"
-          className="mt-2 text-sm text-red-700"
+          className="flex w-full items-start gap-2 rounded-[var(--radius-sm)] bg-[var(--color-danger-bg)] px-3 py-2 text-sm leading-5"
         >
-          {message}
-        </p>
+          <AlertIcon
+            size={20}
+            className="mt-0.5 flex-none text-[var(--color-danger)]"
+          />
+          <p className="min-w-0 font-medium text-[var(--color-text-strong)]">
+            {message}
+          </p>
+        </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
         <button
           type="submit"
           data-testid="summary-search"
           disabled={invalid}
-          className="min-h-[44px] w-full rounded-md bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60 sm:flex-1"
+          className="min-h-[44px] w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-sm font-semibold leading-5 text-[var(--color-on-primary)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
         >
           {t('summary.filter.search')}
         </button>
@@ -152,7 +159,7 @@ export default function DateRangeFilter({
             type="button"
             data-testid="summary-reset"
             onClick={handleReset}
-            className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:flex-1"
+            className="min-h-[44px] w-full rounded-[var(--radius-md)] px-4 text-sm font-semibold leading-5 text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] sm:flex-1"
           >
             {t('summary.filter.reset')}
           </button>

@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertIcon } from '../../components/icons';
 import { LoadingState, ServerErrorState } from '../../components/states';
 import type { DictKey } from '../../i18n/id';
 import { useI18n } from '../../i18n/provider';
@@ -120,57 +121,80 @@ export default function ChangePhotoPage() {
   }
 
   return (
-    <section data-testid="change-photo" className="w-full max-w-sm">
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          {t('profile.photo.title')}
-        </h1>
-        <p
-          data-testid="photo-rules"
-          className="mt-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800"
-        >
-          {t('profile.photo.hint')}
-        </p>
-
-        <div className="mt-4">
-          <label
-            htmlFor="change-photo-file"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t('profile.photo.choose')}
-          </label>
-          <input
-            id="change-photo-file"
-            data-testid="photo-input"
-            type="file"
-            accept={ACCEPTED_PHOTO_TYPES.join(',')}
-            disabled={uploading}
-            onChange={handleFileChange}
-            className="mt-1 block min-h-[44px] w-full text-sm text-gray-700 file:mr-3 file:min-h-[44px] file:rounded-md file:border file:border-gray-300 file:bg-white file:px-4 file:text-sm file:font-medium file:text-gray-700 hover:file:bg-gray-50"
+    <section data-testid="change-photo" className="space-y-6">
+      <h1 className="text-xl font-bold leading-8 text-[var(--color-text-strong)]">
+        {t('profile.photo.title')}
+      </h1>
+      <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+        <div className="flex items-start gap-2 rounded-[var(--radius-sm)] bg-[var(--color-primary-subtle)] px-3 py-2 text-sm leading-5">
+          <AlertIcon
+            size={20}
+            className="mt-0.5 flex-none text-[var(--color-primary)]"
           />
-          {fileName !== null && (
-            <p
-              data-testid="photo-file"
-              className="mt-1 break-all text-sm text-gray-600"
+          <p data-testid="photo-rules" className="min-w-0 text-[var(--color-text)]">
+            {t('profile.photo.hint')}
+          </p>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="change-photo-file"
+              className="text-sm font-medium leading-5 text-[var(--color-text)]"
             >
-              {fileName}
-            </p>
-          )}
-          {uploading && (
-            <div className="mt-1">
-              <LoadingState label={t('profile.photo.uploading')} rows={1} />
-            </div>
-          )}
-          {inlineError !== null && (
-            <p
-              id="photo-error"
-              data-testid="photo-error"
-              role="alert"
-              className="mt-1 text-sm text-red-700"
+              {t('profile.photo.choose')}
+            </label>
+            <input
+              id="change-photo-file"
+              data-testid="photo-input"
+              type="file"
+              accept={ACCEPTED_PHOTO_TYPES.join(',')}
+              disabled={uploading}
+              aria-describedby={inlineError === null ? undefined : 'photo-error'}
+              onChange={handleFileChange}
+              className="mt-1 block min-h-[44px] w-full text-sm text-[var(--color-text-strong)] file:mr-3 file:min-h-[44px] file:rounded-[var(--radius-sm)] file:border file:border-[var(--color-border)] file:bg-[var(--color-surface)] file:px-4 file:text-sm file:font-semibold file:text-[var(--color-text)] hover:file:bg-[var(--color-page)]"
+            />
+            {fileName !== null && (
+              <p
+                data-testid="photo-file"
+                className="break-all text-sm leading-5 text-[var(--color-text-muted)]"
+              >
+                {fileName}
+              </p>
+            )}
+            {uploading && (
+              <div className="mt-1">
+                <LoadingState label={t('profile.photo.uploading')} rows={1} />
+              </div>
+            )}
+            {inlineError !== null && (
+              <div
+                id="photo-error"
+                data-testid="photo-error"
+                role="alert"
+                className="flex items-start gap-2 rounded-[var(--radius-sm)] bg-[var(--color-danger-bg)] px-3 py-2 text-sm leading-5"
+              >
+                <AlertIcon
+                  size={20}
+                  className="mt-0.5 flex-none text-[var(--color-danger)]"
+                />
+                <p className="min-w-0 font-medium text-[var(--color-text-strong)]">
+                  {inlineError}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <button
+              type="button"
+              data-testid="photo-cancel"
+              onClick={() => navigate('/profil')}
+              className="min-h-[44px] w-full rounded-[var(--radius-md)] px-4 text-sm font-semibold leading-5 text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
             >
-              {inlineError}
-            </p>
-          )}
+              {t('common.cancel')}
+            </button>
+          </div>
         </div>
 
         {faultTitle !== null && (
@@ -185,17 +209,6 @@ export default function ChangePhotoPage() {
             />
           </div>
         )}
-
-        <div className="mt-4">
-          <button
-            type="button"
-            data-testid="photo-cancel"
-            onClick={() => navigate('/profil')}
-            className="min-h-[44px] w-full rounded-md border border-gray-300 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            {t('common.cancel')}
-          </button>
-        </div>
       </div>
     </section>
   );

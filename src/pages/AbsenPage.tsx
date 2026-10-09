@@ -65,11 +65,13 @@ function formatLastPunch(
 
 /**
  * Today's attendance screen. It loads the punch state first, then shows the
- * status, the last punch and the single primary action: clock in while no
- * session is open, clock out while one is. Each submission carries a fresh
- * idempotency key that survives failures, so retrying after a dropped
- * connection cannot record a second row, and a punch the server did record
- * is announced with the success toast.
+ * status pill, the clock-in hero and the last punch inside a status card,
+ * with the single primary action under it: clock in while no session is
+ * open, clock out while one is. Each submission carries a fresh idempotency
+ * key that survives failures, so retrying after a dropped connection cannot
+ * record a second row, and a punch the server did record is announced with
+ * the success toast. The conflict and offline answers replace the reserved
+ * punch layout with an overlay, so nothing underneath shifts.
  */
 export default function AbsenPage() {
   const { t, lang } = useI18n();
@@ -173,12 +175,25 @@ export default function AbsenPage() {
   }).format(new Date());
 
   const working = state?.status === 'bekerja';
-  const clockInLine =
+  const clockInIso =
     working && typeof state?.clockInAt === 'string' && state.clockInAt !== ''
-      ? t('absen.clockIn').replace('{time}', formatClock(state.clockInAt, lang))
+      ? state.clockInAt
       : null;
   const lastPunchLine =
     state === null ? null : formatLastPunch(state.lastPunch, t, lang);
+
+  // The clock-in hero keeps the label and the big time on separate lines
+  // while still reading as the dictionary sentence for assistive technology.
+  const clockParts =
+    clockInIso === null
+      ? null
+      : (() => {
+          const [label, tail] = t('absen.clockIn').split('{time}');
+          return {
+            label: label.trim(),
+            time: `${formatClock(clockInIso, lang)}${tail}`,
+          };
+        })();
 
   let content: ReactNode;
   if (phase === 'loading') {
@@ -194,68 +209,85 @@ export default function AbsenPage() {
     );
   } else {
     content = (
-      <div className="relative">
-        <h1 className="text-2xl font-semibold">{t('absen.title')}</h1>
-        <p data-testid="absen-today" className="mt-1 text-sm text-gray-500">
-          {t('absen.todayLabel')}: {today}
-        </p>
-
-        <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      <>
+        <div>
+          <h1 className="text-xl font-bold leading-8 text-[var(--color-text-strong)]">
+            {t('absen.title')}
+          </h1>
           <p
-            data-testid="absen-status"
-            className="text-lg font-semibold text-gray-900"
+            data-testid="absen-today"
+            className="mt-1 text-sm leading-5 text-[var(--color-text-muted)]"
           >
-            {working ? t('absen.status.bekerja') : t('absen.status.belumMasuk')}
+            {t('absen.todayLabel')}: {today}
           </p>
-          {clockInLine !== null && (
-            <p
-              data-testid="absen-clock-in"
-              className="mt-1 text-sm text-gray-600"
-            >
-              {clockInLine}
-            </p>
-          )}
-          {lastPunchLine !== null && (
-            <p
-              data-testid="absen-last-punch"
-              className="mt-1 text-sm text-gray-500"
-            >
-              {t('absen.lastPunchLabel')}: {lastPunchLine}
-            </p>
-          )}
         </div>
 
-        {punchError && (
-          <div className="mt-4">
-            <ServerErrorState onRetry={handleRetry} />
+        <div className="relative">
+          <div className="flex flex-col items-start gap-3 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-card)]">
+            <span
+              data-testid="absen-status"
+              className={
+                working
+                  ? 'inline-flex items-center rounded-full bg-[var(--color-success-bg)] px-3 py-1 text-xs font-semibold leading-4 text-[var(--color-success)]'
+                  : 'inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-page)] px-3 py-1 text-xs font-semibold leading-4 text-[var(--color-text)]'
+              }
+            >
+              {working ? t('absen.status.bekerja') : t('absen.status.belumMasuk')}
+            </span>
+
+            {clockParts !== null && (
+              <p data-testid="absen-clock-in" className="flex flex-col gap-1">
+                <span className="text-sm leading-5 text-[var(--color-text-muted)]">
+                  {clockParts.label}
+                </span>{' '}
+                <span className="text-2xl font-bold leading-10 tabular-nums text-[var(--color-text-strong)]">
+                  {clockParts.time}
+                </span>
+              </p>
+            )}
+
+            {lastPunchLine !== null && (
+              <p
+                data-testid="absen-last-punch"
+                className="text-base leading-6 tabular-nums text-[var(--color-text)]"
+              >
+                {t('absen.lastPunchLabel')}: {lastPunchLine}
+              </p>
+            )}
           </div>
-        )}
 
-        <button
-          type="button"
-          data-testid="punch-button"
-          disabled={submitting}
-          aria-busy={submitting}
-          onClick={handlePunch}
-          className="mt-4 min-h-[56px] w-full rounded-md bg-blue-600 px-4 text-lg font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-        >
-          {working ? t('absen.punch.pulang') : t('absen.punch.masuk')}
-        </button>
+          {punchError && (
+            <div className="mt-4">
+              <ServerErrorState onRetry={handleRetry} />
+            </div>
+          )}
 
-        {conflict !== null && (
-          <ConflictOverlay
-            title={conflict.title}
-            description={conflict.description}
-            onRefresh={() => void handleConflictRefresh()}
-          />
-        )}
-        {networkDown && <NetworkErrorOverlay onRetry={handleRetry} />}
-      </div>
+          <button
+            type="button"
+            data-testid="punch-button"
+            disabled={submitting}
+            aria-busy={submitting}
+            onClick={handlePunch}
+            className="mt-6 min-h-[56px] w-full rounded-[var(--radius-md)] bg-[var(--color-primary)] px-4 text-lg font-semibold leading-7 tracking-[0.04em] text-[var(--color-on-primary)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-primary-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {working ? t('absen.punch.pulang') : t('absen.punch.masuk')}
+          </button>
+
+          {conflict !== null && (
+            <ConflictOverlay
+              title={conflict.title}
+              description={conflict.description}
+              onRefresh={() => void handleConflictRefresh()}
+            />
+          )}
+          {networkDown && <NetworkErrorOverlay onRetry={handleRetry} />}
+        </div>
+      </>
     );
   }
 
   return (
-    <section data-testid="absen" className="space-y-4">
+    <section data-testid="absen" className="max-w-[60ch] space-y-6">
       {content}
       {toast}
     </section>

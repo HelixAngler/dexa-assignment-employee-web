@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { CloseIcon, HamburgerIcon } from './icons';
 import type { DictKey } from '../i18n/id';
 import { LanguageToggle, useI18n } from '../i18n/provider';
 
@@ -10,10 +11,13 @@ export const appShellLinks: readonly { to: string; labelKey: DictKey }[] = [
   { to: '/summary', labelKey: 'nav.summary' },
 ];
 
+/** One nav item: 44 px target, subtle hover, primary-tinted active state. */
 function linkClassName({ isActive }: { isActive: boolean }) {
   return [
-    'flex min-h-[44px] items-center px-3 text-sm font-medium transition-colors',
-    isActive ? 'text-blue-700' : 'text-gray-600 hover:text-blue-700',
+    'inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] px-3 transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]',
+    isActive
+      ? 'bg-[var(--color-primary-subtle)] font-semibold text-[var(--color-primary)] shadow-[inset_0_-2px_0_var(--color-primary)]'
+      : 'font-medium text-[var(--color-text)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)]',
   ].join(' ');
 }
 
@@ -27,14 +31,14 @@ export default function AppShell() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <header className="border-b border-gray-200 bg-white">
+    <div className="min-h-screen bg-[var(--color-page)] text-[var(--color-text)]">
+      <header className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <nav
           data-testid="nav-desktop"
           aria-label={t('shell.navDesktop')}
-          className="mx-auto hidden max-w-5xl items-center gap-1 px-4 md:flex"
+          className="mx-auto hidden max-w-5xl items-center gap-3 px-4 py-2 md:flex"
         >
-          <span className="mr-4 py-3 text-base font-semibold">
+          <span className="mr-auto min-w-0 truncate whitespace-nowrap text-lg font-bold leading-7 text-[var(--color-text-strong)]">
             {t('shell.appTitle')}
           </span>
           {appShellLinks.map((link) => (
@@ -45,8 +49,8 @@ export default function AppShell() {
           <LanguageToggle />
         </nav>
 
-        <div className="flex items-center justify-between px-4 md:hidden">
-          <span className="py-3 text-base font-semibold">
+        <div className="flex items-center justify-between gap-3 px-3 py-2 md:hidden">
+          <span className="min-w-0 truncate text-base font-bold leading-6 text-[var(--color-text-strong)]">
             {t('shell.appTitle')}
           </span>
           <div className="flex items-center">
@@ -59,9 +63,9 @@ export default function AppShell() {
               aria-expanded={menuOpen}
               aria-controls="mobile-nav-menu"
               onClick={() => setMenuOpen((open) => !open)}
-              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-2xl leading-none text-gray-700 hover:bg-gray-100"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
             >
-              <span aria-hidden="true">{menuOpen ? '✕' : '☰'}</span>
+              {menuOpen ? <CloseIcon size={20} /> : <HamburgerIcon size={20} />}
             </button>
           </div>
         </div>
@@ -71,7 +75,7 @@ export default function AppShell() {
             id="mobile-nav-menu"
             data-testid="nav-mobile-menu"
             aria-label={t('shell.navMobile')}
-            className="flex flex-col border-t border-gray-200 bg-white md:hidden"
+            className="flex flex-col gap-1 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 shadow-[var(--shadow-raised)] md:hidden"
           >
             {appShellLinks.map((link) => (
               <NavLink

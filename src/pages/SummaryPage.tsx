@@ -203,8 +203,10 @@ export default function SummaryPage() {
   }
 
   return (
-    <section data-testid="summary" className="space-y-4">
-      <h1 className="text-2xl font-semibold">{t('summary.title')}</h1>
+    <section data-testid="summary" className="space-y-6">
+      <h1 className="text-xl font-bold leading-8 text-[var(--color-text-strong)]">
+        {t('summary.title')}
+      </h1>
       <DateRangeFilter
         from={range.from}
         to={range.to}
