@@ -38,7 +38,10 @@ export default function AppShell() {
           aria-label={t('shell.navDesktop')}
           className="mx-auto hidden max-w-5xl items-center gap-3 px-4 py-2 md:flex"
         >
-          <span className="mr-auto min-w-0 truncate whitespace-nowrap text-lg font-bold leading-7 text-[var(--color-text-strong)]">
+          <span
+            title={t('shell.appTitle')}
+            className="mr-auto min-w-0 truncate whitespace-nowrap text-lg font-bold leading-7 text-[var(--color-text-strong)]"
+          >
             {t('shell.appTitle')}
           </span>
           {appShellLinks.map((link) => (
@@ -50,7 +53,10 @@ export default function AppShell() {
         </nav>
 
         <div className="flex items-center justify-between gap-3 px-3 py-2 md:hidden">
-          <span className="min-w-0 truncate text-base font-bold leading-6 text-[var(--color-text-strong)]">
+          <span
+            title={t('shell.appTitle')}
+            className="min-w-0 truncate text-base font-bold leading-6 text-[var(--color-text-strong)]"
+          >
             {t('shell.appTitle')}
           </span>
           <div className="flex items-center">
