@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { CloseIcon, HamburgerIcon } from './icons';
 import type { DictKey } from '../i18n/id';
 import { LanguageToggle, useI18n } from '../i18n/provider';
+import { useSession } from '../services/session';
 
 /** Navigation targets; labels are resolved through the i18n dictionary. */
 export const appShellLinks: readonly { to: string; labelKey: DictKey }[] = [
@@ -10,6 +11,10 @@ export const appShellLinks: readonly { to: string; labelKey: DictKey }[] = [
   { to: '/absen', labelKey: 'nav.absen' },
   { to: '/summary', labelKey: 'nav.summary' },
 ];
+
+/** Sign-out control: 44 px target, ghost look, primary hover and focus ring. */
+const signOutButtonClass =
+  'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-sm)] px-3 font-semibold text-sm text-[var(--color-text)] transition-colors duration-[var(--motion-fast)] ease-[var(--motion-easing)] hover:bg-[var(--color-page)] hover:text-[var(--color-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]';
 
 /** One nav item: 44 px target, subtle hover, primary-tinted active state. */
 function linkClassName({ isActive }: { isActive: boolean }) {
@@ -29,6 +34,7 @@ function linkClassName({ isActive }: { isActive: boolean }) {
 export default function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useI18n();
+  const { logout } = useSession();
 
   return (
     <div className="min-h-[100dvh] bg-[var(--color-page)] text-[var(--color-text)]">
@@ -50,6 +56,14 @@ export default function AppShell() {
             </NavLink>
           ))}
           <LanguageToggle />
+          <button
+            type="button"
+            data-testid="shell-sign-out"
+            onClick={() => void logout()}
+            className={signOutButtonClass}
+          >
+            {t('state.accessDenied.signOut')}
+          </button>
         </nav>
 
         <div className="flex items-center justify-between gap-3 px-3 py-2 md:hidden">
@@ -61,6 +75,14 @@ export default function AppShell() {
           </span>
           <div className="flex items-center">
             <LanguageToggle />
+            <button
+              type="button"
+              data-testid="shell-sign-out"
+              onClick={() => void logout()}
+              className={signOutButtonClass}
+            >
+              {t('state.accessDenied.signOut')}
+            </button>
             <button
               type="button"
               aria-label={

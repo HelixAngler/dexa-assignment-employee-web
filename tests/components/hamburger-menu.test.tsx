@@ -1,11 +1,12 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AppShell from '../../src/components/AppShell';
 import { en } from '../../src/i18n/en';
 import { id } from '../../src/i18n/id';
 import { I18nProvider } from '../../src/i18n/provider';
+import { SessionContext } from '../../src/services/session';
 
 /** The three destinations the phone menu must offer, per interface language. */
 const MENU_ITEMS = {
@@ -15,11 +16,21 @@ const MENU_ITEMS = {
 
 function renderShell() {
   return render(
-    <I18nProvider>
-      <MemoryRouter initialEntries={['/profil']}>
-        <AppShell />
-      </MemoryRouter>
-    </I18nProvider>,
+    <SessionContext.Provider
+      value={{
+        session: { role: 'employee', mustChangePassword: false },
+        status: 'authed',
+        refresh: vi.fn(),
+        login: vi.fn(),
+        logout: vi.fn(),
+      }}
+    >
+      <I18nProvider>
+        <MemoryRouter initialEntries={['/profil']}>
+          <AppShell />
+        </MemoryRouter>
+      </I18nProvider>
+    </SessionContext.Provider>,
   );
 }
 

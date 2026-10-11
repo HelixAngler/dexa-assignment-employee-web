@@ -1,18 +1,31 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { id } from '../i18n/id';
 import { I18nProvider } from '../i18n/provider';
+import { SessionContext, type SessionValue } from '../services/session';
 import AppShell, { appShellLinks } from './AppShell';
 
-function renderShell() {
+function makeSession(logout = vi.fn()): SessionValue {
+  return {
+    session: { role: 'employee', mustChangePassword: false },
+    status: 'authed',
+    refresh: vi.fn(),
+    login: vi.fn(),
+    logout,
+  };
+}
+
+function renderShell(logout = vi.fn()) {
   return render(
-    <I18nProvider>
-      <MemoryRouter initialEntries={['/profil']}>
-        <AppShell />
-      </MemoryRouter>
-    </I18nProvider>,
+    <SessionContext.Provider value={makeSession(logout)}>
+      <I18nProvider>
+        <MemoryRouter initialEntries={['/profil']}>
+          <AppShell />
+        </MemoryRouter>
+      </I18nProvider>
+    </SessionContext.Provider>,
   );
 }
 
@@ -63,6 +76,30 @@ describe('AppShell', () => {
 
     expect(screen.getAllByText(id['shell.appTitle']).length).toBeGreaterThan(0);
     expect(screen.getByLabelText(id['shell.navDesktop'])).toBeInTheDocument();
+  });
+
+  it('offers sign out in both the desktop row and the mobile header', () => {
+    renderShell();
+
+    const buttons = screen.getAllByTestId('shell-sign-out');
+    expect(buttons).toHaveLength(2);
+    for (const button of buttons) {
+      expect(button).toHaveTextContent(id['state.accessDenied.signOut']);
+    }
+    const desktopNav = screen.getByTestId('nav-desktop');
+    expect(
+      within(desktopNav).getByTestId('shell-sign-out'),
+    ).toBeInTheDocument();
+  });
+
+  it('hands the sign-out request to the session', async () => {
+    const user = userEvent.setup();
+    const logout = vi.fn().mockResolvedValue(undefined);
+    renderShell(logout);
+
+    await user.click(screen.getAllByTestId('shell-sign-out')[0]);
+
+    expect(logout).toHaveBeenCalledTimes(1);
   });
 
   it('switches all shell copy to English via the language toggle', async () => {
